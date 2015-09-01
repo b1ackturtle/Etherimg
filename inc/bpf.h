@@ -1,4 +1,4 @@
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
 #ifndef _PKTTOOLS_BPF_H_INCLUDED_
 #define _PKTTOOLS_BPF_H_INCLUDED_
 

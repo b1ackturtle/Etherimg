@@ -1,4 +1,4 @@
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -7,10 +7,10 @@
 #include "lib.h"
 
 struct pkt_handler pkthandler = {
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
   bpf_open_recv, bpf_open_send, bpf_recv, bpf_send,
 #endif
-#ifdef __linux__
+#if defined(__linux__)
   rawsock_open_recv, rawsock_open_send, rawsock_recv, rawsock_send,
 #endif
 };
