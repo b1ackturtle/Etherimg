@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   //std::cout << img.cols << " " << img.rows << std::endl;
 
   //const auto startTime = std::chrono::system_clock::now();
-  etherimg_send(argv[1], img);
+  //etherimg_send(argv[1], img);
   //const auto endTime = std::chrono::system_clock::now();
   //const auto timeSpan = endTime - startTime;
   //std::cout << "処理時間:" << std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count() << "[ms]" << std::endl;
