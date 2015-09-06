@@ -10,6 +10,7 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include <net/ethernet.h>
+#include <arpa/inet.h>
 
 #include "lib.h"
 #include "etherimg.h"
