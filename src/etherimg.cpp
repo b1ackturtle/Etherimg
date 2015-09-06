@@ -29,31 +29,24 @@ static struct Etherimg_header{
 
 void etherimg_send(char *netif, cv::Mat img)
 {
-  static int fd;
+  static int fd = pkthandler.open_send(netif, 0);;
   int size;
   std::vector< std::vector<cv::Vec3b> > vec;
-  static bool flag = false;
+
+  int height = img.rows, width = img.cols;
+  int channels = img.channels();
 
   static std::vector<unsigned char> buffer{
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //Destination MAC Address
     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, //Source MAC Address
     0x15, 0x15, //EtherType
+    (unsigned char)(height>>8), (unsigned char)height, //Image Height
+    (unsigned char)(width>>8), (unsigned char)width, //Image Width
+    0, (unsigned char)channels, //Image Channels
   };
 
   mtov(img, vec);
 
-  int height = img.rows, width = img.cols;
-  int channels = img.channels();
-
-  if(!flag) {
-    fd = pkthandler.open_send(netif, 0);
-    buffer.push_back(height>>8); buffer.push_back(height);
-    buffer.push_back(width>>8); buffer.push_back(width);
-    buffer.push_back(0); buffer.push_back(channels);
-
-    flag = true;
-  }
-  
   int num = 0;
   int seq = 0;
 
@@ -82,19 +75,14 @@ void etherimg_send(char *netif, cv::Mat img)
   return;
 }
 
-void etherimg_recv::open(char* netif)
-{
-  fd = pkthandler.open_recv(netif, 0, NULL);
-  return;
-}
-
-void etherimg_recv::get(cv::Mat& img)
+void etherimg_recv(char* netif, cv::Mat& img)
 {
   int size;
   char buffer[65536];
   int height, width, channels;
   int seq, old_seq = -1;
 
+  static int fd = pkthandler.open_recv(netif, 0, NULL);
   static std::array< std::array<cv::Vec3b, 640>, 480> arr;
 
   while(1){
@@ -127,11 +115,6 @@ void etherimg_recv::get(cv::Mat& img)
     }
   }
 
-  return;
-}
-
-void etherimg_recv::close()
-{
   return;
 }
 
