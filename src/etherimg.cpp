@@ -115,13 +115,13 @@ void etherimg_recv::get(cv::Mat& img)
     channels = ntohs(etherimg_header->channels);
     seq = ntohs(etherimg_header->seq);
 
-    if(ntohs(etherimg_header->etherType) == 0x1515 && seq != 618) {
-      for(int i = 0; i < PKT_SIZE_MAX; i++) {
+    if(ntohs(etherimg_header->etherType) == 0x1515) {
+      for(int i = 0; i < size-22; i++) {
 	*(&arr[0][0][0]+seq*PKT_SIZE_MAX+i) = etherimg_header->data[i];
       }
     }
 
-    if(ntohs(etherimg_header->seq) == 618) {
+    if(ntohs(etherimg_header->seq) == height*width*channels/PKT_SIZE_MAX) {
       vtom(arr, img);
       return;
     }
