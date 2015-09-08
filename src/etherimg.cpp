@@ -52,6 +52,7 @@ void etherimg_send(char *netif, cv::Mat img)
   int seq = 0;
 
   std::vector<unsigned char> packet = buffer;
+  packet.reserve(5000000);
   packet.push_back(seq>>8); packet.push_back(seq);
   for(int i = 0; i < height; i++) {
     for(int j = 0; j < width; j++) {
@@ -84,7 +85,8 @@ void etherimg_recv(char* netif, cv::Mat& img)
   int seq, old_seq = -1;
 
   static int fd = pkthandler.open_recv(netif, 0, NULL);
-  static std::array< std::array<cv::Vec3b, 640>, 480> arr;
+  //static std::array< std::array<cv::Vec3b, 640>, 480> arr;
+  static std::vector<cv::Vec3b> vec(5000000);
 
   while(1){
     size = pkthandler.recv(fd, buffer, sizeof(buffer), NULL);
@@ -106,12 +108,13 @@ void etherimg_recv(char* netif, cv::Mat& img)
 
     if(ntohs(etherimg_header->etherType) == 0x1515) {
       for(int i = 0; i < size-22; i++) {
-	*(&arr[0][0][0]+seq*PKT_SIZE_MAX+i) = etherimg_header->data[i];
+	//*(&arr[0][0][0]+seq*PKT_SIZE_MAX+i) = etherimg_header->data[i];
+	*(&vec[0][0]+seq*PKT_SIZE_MAX+i) = etherimg_header->data[i];
       }
     }
 
     if(ntohs(etherimg_header->seq) == height*width*channels/PKT_SIZE_MAX) {
-      vtom(arr, img);
+      vtom(vec, img, height, width);
       return;
     }
   }
@@ -129,12 +132,20 @@ void mtov(cv::Mat src, std::vector< std::vector< cv::Vec3b> >& dst)
 }
 
 //void vtom(std::vector< std::vector< cv::Vec3b> > src, cv::Mat& dst)
-void vtom(std::array< std::array< cv::Vec3b,640>, 480 > src, cv::Mat& dst)
+//void vtom(std::array< std::array< cv::Vec3b,640>, 480 > src, cv::Mat& dst)
 //void vtom(boost::multi_array<cv::Vec3b, 2> src, cv::Mat& dst, int height, int width)
+void vtom(std::vector<cv::Vec3b>& src, cv::Mat& dst, int height ,int width)
 {
-  int height = src.size(), width = src[0].size();
+  //int height = src.size(), width = src[0].size();
 
   dst = cv::Mat(height, width, CV_8UC3);
+  for(int i = 0; i < height; i++) {
+    for(int j = 0; j < width; j++) {
+      dst.at<cv::Vec3b>(i, j) = src[i*width+j];
+    }
+  }
+
+  /*
   for(int i = 0; i < height; i++) {
     for(int j = 0; j < width; j++) {
       for(int k = 0; k < 3; k++) {
@@ -142,7 +153,7 @@ void vtom(std::array< std::array< cv::Vec3b,640>, 480 > src, cv::Mat& dst)
       }
     }
   }
-
+  */
   dst.reshape(height, width);
 
   return;
