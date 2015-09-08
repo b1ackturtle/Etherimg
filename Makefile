@@ -4,8 +4,11 @@ CXXLFLAGS = `pkg-config --libs opencv`
 CC = gcc
 INCLUDE = -I./inc/
 
-TARGET_SEND = ./src/send
-TARGET_RECV = ./src/recv
+OBJ_SEND = ./src/send.o
+OBJ_RECV = ./src/recv.o
+
+TARGET_SEND = ./send
+TARGET_RECV = ./recv
 
 OBJS = ./src/bpf.o ./src/rawsock.o ./src/lib.o ./src/etherimg.o
 
@@ -19,12 +22,12 @@ all: $(TARGETS)
 .cpp.o:
 	$(CXX) $(CXXCFLAGS) $(INCLUDE) $< -c -o $@
 
-$(TARGET_SEND): $(TARGET_SEND).o $(OBJS)
-	$(CXX) $(TARGET_SEND).o $(CXXLFLAGS) $(INCLUDE) $(OBJS) -o $@
+$(TARGET_SEND): $(OBJ_SEND) $(OBJS)
+	$(CXX) $(OBJ_SEND) $(CXXLFLAGS) $(INCLUDE) $(OBJS) -o $@
 
-$(TARGET_RECV): $(TARGET_RECV).o $(OBJS)
-	$(CXX) $(TARGET_RECV).o $(CXXLFLAGS) $(INCLUDE) $(OBJS) -o $@
+$(TARGET_RECV): $(OBJ_RECV) $(OBJS)
+	$(CXX) $(OBJ_RECV) $(CXXLFLAGS) $(INCLUDE) $(OBJS) -o $@
 
 clean:
 	rm $(OBJS) $(TARGETS)
-	rm $(TARGET_SEND).o $(TARGET_RECV).o
+	rm $(OBJ_SEND) $(OBJ_RECV)
