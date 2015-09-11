@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     //usleep(10);
     imshow("res", img);
 
-    if(cv::waitKey(10) == 'q') break;
+    if(cv::waitKey(1) == 'q') break;
   }
 
   //  while(1) {
