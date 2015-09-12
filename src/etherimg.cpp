@@ -36,8 +36,9 @@ void etherimg_send(char *netif, cv::Mat img)
   int height = img.rows, width = img.cols;
   int channels = img.channels();
 
-  static std::vector< std::vector<cv::Vec3b> > vec;
-  vec.reserve(5000000); vec.clear();
+  //static std::vector< std::vector<cv::Vec3b> > vec(height*width);
+  //vec.reserve(5000000); vec.clear();
+  static std::vector<cv::Vec3b> vec(height*width);
 
   /*
   static std::vector<unsigned char> buffer{
@@ -100,7 +101,7 @@ void etherimg_send(char *netif, cv::Mat img)
 	  packet[20] = seq>>8; packet[21] = seq;
 	  size = 22;
 	}
-	packet[size] = vec[i][j][k];
+	packet[size] = vec[i*width+j][k];//vec[i][j][k];
 	size++;
       }
     }
@@ -121,6 +122,7 @@ void etherimg_recv(char* netif, cv::Mat& img)
   static int fd = pkthandler.open_recv(netif, 0, NULL);
   //static std::array< std::array<cv::Vec3b, 640>, 480> arr;
   static std::vector<cv::Vec3b> vec(5000000);
+  //static Array3b vec;
 
   while(1){
     size = pkthandler.recv(fd, buffer, sizeof(buffer), NULL);
@@ -156,11 +158,18 @@ void etherimg_recv(char* netif, cv::Mat& img)
   return;
 }
 
-void mtov(cv::Mat src, std::vector< std::vector< cv::Vec3b> >& dst)
+//void mtov(cv::Mat src, std::vector< std::vector< cv::Vec3b> >& dst)
+void mtov(cv::Mat src, std::vector<cv::Vec3b>& dst)
 {
+  /*
   for(int i = 0; i < src.rows; i++) {
     dst.push_back(src.row(i));
   }
+  */
+
+  int height = src.rows, width = src.cols;
+  int channels = src.channels();
+  memcpy(&dst[0][0], src.data, sizeof(uchar)*height*width*channels);
 
   return;
 }
@@ -169,15 +178,19 @@ void mtov(cv::Mat src, std::vector< std::vector< cv::Vec3b> >& dst)
 //void vtom(std::array< std::array< cv::Vec3b,640>, 480 > src, cv::Mat& dst)
 //void vtom(boost::multi_array<cv::Vec3b, 2> src, cv::Mat& dst, int height, int width)
 void vtom(std::vector<cv::Vec3b>& src, cv::Mat& dst, int height ,int width)
+//void vtom(Array3b& src, cv::Mat& dst, int height, int width)
 {
   //int height = src.size(), width = src[0].size();
 
   dst = cv::Mat(height, width, CV_8UC3);
+  memcpy(dst.data, &src[0][0], sizeof(uchar)*height*width*3);
+  /*
   for(int i = 0; i < height; i++) {
     for(int j = 0; j < width; j++) {
       dst.at<cv::Vec3b>(i, j) = src[i*width+j];
     }
   }
+  */
 
   /*
   for(int i = 0; i < height; i++) {
@@ -188,7 +201,7 @@ void vtom(std::vector<cv::Vec3b>& src, cv::Mat& dst, int height ,int width)
     }
   }
   */
-  dst.reshape(height, width);
+  //dst.reshape(height, width);
 
   return;
 }

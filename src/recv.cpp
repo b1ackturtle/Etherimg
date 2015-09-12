@@ -21,9 +21,12 @@ int main(int argc, char *argv[])
   cv::Mat img;
 
   while(1) {
+    const auto startTime = std::chrono::system_clock::now();
     etherimg_recv(argv[1], img);
-    //std::cout << "main" << std::endl;
-    //usleep(10);
+    const auto endTime = std::chrono::system_clock::now();
+    const auto timeSpan = endTime - startTime;
+    printf("%lld\n", std::chrono::duration_cast<std::chrono::milliseconds>(timeSpan).count());
+
     imshow("res", img);
 
     if(cv::waitKey(1) == 'q') break;
