@@ -36,20 +36,7 @@ void etherimg_send(char *netif, cv::Mat img)
   int height = img.rows, width = img.cols;
   int channels = img.channels();
 
-  //static std::vector< std::vector<cv::Vec3b> > vec(height*width);
-  //vec.reserve(5000000); vec.clear();
   static std::vector<cv::Vec3b> vec(height*width);
-
-  /*
-  static std::vector<unsigned char> buffer{
-    0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //Destination MAC Address
-    0x00, 0x11, 0x22, 0x33, 0x44, 0x55, //Source MAC Address
-    0x15, 0x15, //EtherType
-    (unsigned char)(height>>8), (unsigned char)height, //Image Height
-    (unsigned char)(width>>8), (unsigned char)width, //Image Width
-    0, (unsigned char)channels, //Image Channels
-  };
-  */
 
   static std::array<unsigned char, 1513> packet{
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, //Destination MAC Address
@@ -62,34 +49,9 @@ void etherimg_send(char *netif, cv::Mat img)
 
   mtov(img, vec);
 
-  //int num = 0;
   int seq = 0;
 
-  //std::vector<unsigned char> packet = buffer;
-  //packet.reserve(10000000);
-  //packet.push_back(seq>>8); packet.push_back(seq);
   packet[20] = seq>>8; packet[21] = seq;
-  /*
-  for(int i = 0; i < height; i++) {
-    for(int j = 0; j < width; j++) {
-      for(int k = 0; k < channels; k++) {
-	if(num >= PKT_SIZE_MAX) {
-	  num = 0;
-	  size = packet.size();
-	  if(size > 0) pkthandler.send(fd, (char *)&packet[0], size);
-	  packet.clear(); packet = buffer;
-	  seq++;
-	  packet.push_back(seq>>8); packet.push_back(seq);
-	}
-	num++;
-	packet.push_back(vec[i][j][k]);
-      }
-    }
-  }
-
-  size = packet.size();
-  if(size > 0) pkthandler.send(fd, (char *)&packet[0], size);
-  */
 
   size = 22;
   for(int i = 0; i < height; i++) {
@@ -144,7 +106,6 @@ void etherimg_recv(char* netif, cv::Mat& img)
 
     if(ntohs(etherimg_header->etherType) == 0x1515) {
       for(int i = 0; i < size-22; i++) {
-	//*(&arr[0][0][0]+seq*PKT_SIZE_MAX+i) = etherimg_header->data[i];
 	*(&vec[0][0]+seq*PKT_SIZE_MAX+i) = etherimg_header->data[i];
       }
 
@@ -158,15 +119,8 @@ void etherimg_recv(char* netif, cv::Mat& img)
   return;
 }
 
-//void mtov(cv::Mat src, std::vector< std::vector< cv::Vec3b> >& dst)
 void mtov(cv::Mat src, std::vector<cv::Vec3b>& dst)
 {
-  /*
-  for(int i = 0; i < src.rows; i++) {
-    dst.push_back(src.row(i));
-  }
-  */
-
   int height = src.rows, width = src.cols;
   int channels = src.channels();
   memcpy(&dst[0][0], src.data, sizeof(uchar)*height*width*channels);
@@ -174,34 +128,10 @@ void mtov(cv::Mat src, std::vector<cv::Vec3b>& dst)
   return;
 }
 
-//void vtom(std::vector< std::vector< cv::Vec3b> > src, cv::Mat& dst)
-//void vtom(std::array< std::array< cv::Vec3b,640>, 480 > src, cv::Mat& dst)
-//void vtom(boost::multi_array<cv::Vec3b, 2> src, cv::Mat& dst, int height, int width)
 void vtom(std::vector<cv::Vec3b>& src, cv::Mat& dst, int height ,int width)
-//void vtom(Array3b& src, cv::Mat& dst, int height, int width)
 {
-  //int height = src.size(), width = src[0].size();
-
   dst = cv::Mat(height, width, CV_8UC3);
   memcpy(dst.data, &src[0][0], sizeof(uchar)*height*width*3);
-  /*
-  for(int i = 0; i < height; i++) {
-    for(int j = 0; j < width; j++) {
-      dst.at<cv::Vec3b>(i, j) = src[i*width+j];
-    }
-  }
-  */
-
-  /*
-  for(int i = 0; i < height; i++) {
-    for(int j = 0; j < width; j++) {
-      for(int k = 0; k < 3; k++) {
-	dst.at<cv::Vec3b>(i, j) = src[i][j];
-      }
-    }
-  }
-  */
-  //dst.reshape(height, width);
 
   return;
 }
